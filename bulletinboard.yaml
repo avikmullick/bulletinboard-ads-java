@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: regcred
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: ewoJImF1dGhzIjogewoJCSJjYy1tcy1rOHMtdHJhaW5pbmcuY29tbW9uLnJlcG9zaXRvcmllcy5jbG91ZC5zYXAiOiB7CgkJCSJhdXRoIjogIlkyeGhkV1JsT2pseFVqVm9ZbWh0TjBSNmR6WkNUbHBqVWtaMiIKCQl9Cgl9LAoJInN0YWNrT3JjaGVzdHJhdG9yIjogInN3YXJtIgp9
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bulletinboard
+spec:
+  type: ClusterIP
+  selector:
+    app: bulletinboard
+  ports:
+    - name: app
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bulletinboard
+spec:
+  selector:
+    matchLabels:
+      app: bulletinboard
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: bulletinboard
+    spec:
+      containers:
+        - name: app
+          image: cc-ms-k8s-training.common.repositories.cloud.sap/cd-i519546
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert.gardener.cloud/purpose: managed
+    nginx.ingress.kubernetes.io/proxy-body-size: 150m
+  name: bulletinboard
+spec:
+  rules:
+    - host: app.ingress.fun.i519546.shoot.canary.k8s-hana.ondemand.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: bulletinboard
+                port:
+                  number: 8080
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - app.ingress.fun.i519546.shoot.canary.k8s-hana.ondemand.com
+      secretName: app-certs
