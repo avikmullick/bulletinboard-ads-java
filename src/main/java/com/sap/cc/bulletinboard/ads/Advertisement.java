@@ -1,14 +1,22 @@
 package com.sap.cc.bulletinboard.ads;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import java.math.BigDecimal;
 
+@Entity
 public class Advertisement {
+    @Id
+    @GeneratedValue
     private Long id;
 
     private String title;
     private String contact;
     private BigDecimal price;
     private String currency;
+
+    private Double averageContactRating;
 
     public String getCurrency() {
         return currency;
@@ -63,4 +71,11 @@ public class Advertisement {
         this.price = price;
     }
 
+    public void setAverageContactRating(Double averageContactRating) {
+        this.averageContactRating = averageContactRating;
+    }
+
+    public Double getAverageContactRating() {
+        return averageContactRating;
+    }
 }
